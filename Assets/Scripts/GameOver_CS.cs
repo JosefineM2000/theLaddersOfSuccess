@@ -39,6 +39,14 @@ public class GameOver_CS : MonoBehaviour
         Application.Quit();
     }
 
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        playerIsDead = false;
+        SceneManager.LoadScene(1);
+        gameOverUI.SetActive(false);
+    }
+
     public bool getStatus()
     {
         return playerIsDead;

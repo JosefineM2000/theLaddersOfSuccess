@@ -6,6 +6,7 @@ public class Player : MonoBehaviour
 {
     public Animator anim;
     public Rigidbody2D rigidBody;
+    private BoxCollider2D boxCollider2d;
     public bool facingRight = true;
     private float speed = 7f;
     private float jumpForce = 15f;
@@ -22,22 +23,23 @@ public class Player : MonoBehaviour
     ScoreCanvas score;
     public GameOver_CS gameOverUI;
 
-    void Start()
+    private void Awake()
     {
         anim = GetComponent<Animator>();
         rigidBody = GetComponent<Rigidbody2D>();
         rb = GetComponent<Rigidbody2D>();
+        boxCollider2d = transform.GetComponent<BoxCollider2D>();
         score = GameObject.Find("ScoreCanvas").GetComponent<ScoreCanvas>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        CheckJumping();
         Walking();
         CheckFlipping();
         Move();
         UpdateLaddarMovement();
-        CheckJumping();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -72,10 +74,7 @@ public class Player : MonoBehaviour
         if (hitInfo.collider != null)
         {
             anim.SetBool("onLadder", true);
-           if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
-           {
-                isClimbing = true;
-           }
+            isClimbing = true;
         }
         else
         {
@@ -98,9 +97,21 @@ public class Player : MonoBehaviour
         }
     }
 
+    private bool IsGrounded()
+    {
+        RaycastHit2D raycastHit2d = Physics2D.BoxCast(boxCollider2d.bounds.center, boxCollider2d.bounds.size, 0f, Vector2.down, .1f, whatIsGround);
+        return raycastHit2d.collider != null;
+    }
+
+    private bool IsLadder()
+    {
+        RaycastHit2D raycastHit2d = Physics2D.BoxCast(boxCollider2d.bounds.center, boxCollider2d.bounds.size, 0f, Vector2.down, .1f, whatIsLadder);
+        return raycastHit2d.collider != null;
+    }
+
     void CheckJumping()
     {
-        if (Input.GetButtonDown("Jump") && (anim.GetBool("onLadder") || anim.GetBool("standOnPlattform")))
+        if ((IsGrounded() || IsLadder() ) && Input.GetKeyDown(KeyCode.Space))
         {
             rigidBody.velocity = Vector2.up * jumpForce;
             anim.SetBool("jump", true);
